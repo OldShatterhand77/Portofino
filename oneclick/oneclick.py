@@ -5,10 +5,10 @@ You must create a "local.py" using the following template:
 
 #! /usr/bin/env python
 
-portofino_version = "4.1"
-tomcat_dir = "apache-tomcat-7.0.54"
+portofino_version = "4.2"
+tomcat_dir = "apache-tomcat-8.0.26"
 portofino_path = "~/projects/portofino4"
-tomcat_url = "http://apache.fis.uniroma2.it/tomcat/tomcat-7/v7.0.54/bin/apache-tomcat-7.0.54.zip"
+tomcat_url = "http://it.apache.contactlab.it/tomcat/tomcat-8/v8.0.26/bin/apache-tomcat-8.0.26.zip"
 drivers = [["org/postgresql/postgresql/9.2-1003-jdbc4/", "postgresql-9.2-1003-jdbc4.jar"],
            ["mysql/mysql-connector-java/5.1.25/", "mysql-connector-java-5.1.25.jar"],
            ["net/sourceforge/jtds/jtds/1.2.8/", "jtds-1.2.8.jar"]]
@@ -48,7 +48,9 @@ if(os.path.exists(tomcat_path)):
 os.system("unzip " + tomcat_zip + " -d " + base_path)
 
 shutil.rmtree(tomcat_path + "/webapps/ROOT")
+shutil.rmtree(tomcat_path + "/webapps/examples") #Conflicts with portofino /examples
 
+shutil.copy(portofino_path + "/README.MD", base_path + "/README.MD")
 shutil.copy(portofino_path + "/COPYRIGHT.txt", base_path + "/COPYRIGHT.txt")
 shutil.copy(portofino_path + "/LICENSE.txt", base_path + "/LICENSE.txt")
 shutil.copy(portofino_path + "/THIRDPARTIES.txt", base_path + "/THIRDPARTIES.txt")

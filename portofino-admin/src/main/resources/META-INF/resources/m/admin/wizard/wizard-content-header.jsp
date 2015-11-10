@@ -13,7 +13,7 @@
             class="${status.first ? 'first' : ''}
                    ${status.index < actionBean.currentStepIndex ? 'before' : ''}
                    ${status.index eq actionBean.currentStepIndex ? 'active' : ''}">
-            <span class="badge ${status.index < actionBean.currentStepIndex ? 'alert-success' : 'alert-info'}"><c:out value="${step.number}" /></span>
+            <span class="badge ${ status.index < actionBean.currentStepIndex ? 'alert-success' : (status.index eq actionBean.currentStepIndex ?'alert-info':'')}"><c:out value="${step.number}" /></span>
             <c:if test="${status.index eq actionBean.currentStepIndex}">
                 <c:out value="${step.title}" />
             </c:if>
@@ -28,3 +28,17 @@
     </ul>
 </div>
 <div style="border-bottom: solid 1px #E5E5E5; margin-top: 10px; margin-bottom: 10px;"></div>
+<script type="text/javascript">
+    $(function() {
+        //Make btn-primary the default button in each form
+        $("form").each(function(_, form) {
+            form = $(form);
+            form.find("button.btn-primary").each(function(_, button) {
+                button = $(button).clone();
+                button.css("visibility", "hidden");
+                button.css("position", "fixed");
+                form.prepend(button);
+            });
+        });
+    });
+</script>

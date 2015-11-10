@@ -8,6 +8,7 @@
 %><%@ page import="com.manydesigns.portofino.security.AccessLevel"
 %><%@ page import="com.manydesigns.portofino.shiro.ShiroUtils"
 %><%@ page import="net.sourceforge.stripes.util.UrlBuilder"
+%><%@ page import="org.apache.commons.lang.StringUtils"
 %><%@ page import="org.apache.shiro.SecurityUtils"
 %><%@ page import="org.apache.shiro.subject.Subject"
 %><%@ page import="java.io.Serializable"
@@ -18,12 +19,11 @@
 %><%@ taglib prefix="stripes" uri="http://stripes.sourceforge.net/stripes.tld"
 %><%@ taglib prefix="mde" uri="/manydesigns-elements"
 %><%@ taglib tagdir="/WEB-INF/tags" prefix="portofino"
-%><stripes:url var="profileUrl" value="/actions/profile"/>
-<jsp:useBean id="portofinoConfiguration" scope="application"
+%><jsp:useBean id="portofinoConfiguration" scope="application"
              type="org.apache.commons.configuration.Configuration"/>
 <jsp:useBean id="actionBean" scope="request" type="com.manydesigns.portofino.stripes.AbstractActionBean"/>
 <fmt:setLocale value="${pageContext.request.locale}"/>
-<header class="navbar navbar-inverse navbar-static-top">
+<header class="navbar navbar-inverse navbar-static-top" role="banner">
     <div class="container">
         <div class="navbar-header">
             <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -32,16 +32,25 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <stripes:link href="/" class="navbar-brand">
+        <%
+        String landingPage = portofinoConfiguration.getString(PortofinoProperties.LANDING_PAGE);
+        String redirectURI = request.getContextPath();
+        if(landingPage != null) {
+            redirectURI += landingPage;
+        }
+        %>
+            <stripes:link href="<%= redirectURI %>" class="navbar-brand" title="<%= portofinoConfiguration.getString(PortofinoProperties.APP_NAME) %>">
+                <% if(!StringUtils.isEmpty(portofinoConfiguration.getString(PortofinoProperties.APP_LOGO))) { %>
+                    <stripes:url var="logoUrl" value="<%= portofinoConfiguration.getString(PortofinoProperties.APP_LOGO) %>"/>
+                    <img src="${logoUrl}" width="32px" alt='<c:out value="<%= portofinoConfiguration.getString(PortofinoProperties.APP_NAME) %>"/>' />
+                <% } %>
                 <c:out value="<%= portofinoConfiguration.getString(PortofinoProperties.APP_NAME) %>"/>
             </stripes:link>
         </div>
         <nav id="header-menu" class="navbar-collapse collapse">
-            <c:if test="${not empty actionBean.pageInstance}">
-                <form id="pageAdminForm" action="${pageContext.request.contextPath}/actions/admin/page">
-                    <input type="hidden" name="originalPath" value="${actionBean.context.actionPath}" />
-                </form>
-            </c:if>
+            <form id="pageAdminForm" action="${pageContext.request.contextPath}/actions/admin/page">
+                <input type="hidden" name="originalPath" value="${actionBean.context.actionPath}" />
+            </form>
             <ul class="nav navbar-nav navbar-right">
                 <%
                     String loginPage = portofinoConfiguration.getString(PortofinoProperties.LOGIN_PAGE);
@@ -84,25 +93,15 @@
                         </li>
                         <%
                             }
-                            UrlBuilder logoutUrlBuilder =
-                                    new UrlBuilder(request.getLocale(), loginPage, true);
-                            logoutUrlBuilder.addParameter("returnUrl", actionPath);
-                            logoutUrlBuilder.addParameter("cancelReturnUrl", actionPath);
-                            logoutUrlBuilder.addParameter("logout");
-                            String logoutUrl = Util.getAbsoluteUrl(logoutUrlBuilder.toString());
-                        %>
-                        <li>
-                            <a href="<%= logoutUrl %>">
-                                <fmt:message key="log.out" />
-                            </a>
-                        </li>
-                        <%
-                            if(request.getAttribute("actionBean") instanceof PageAction) {
+                            if(request.getAttribute("actionBean") instanceof PageAction &&
+                               !actionBean.getContext().getActionPath().equals("/actions/admin/page")) {
                                 PageAction pageAction = (PageAction) request.getAttribute("actionBean");
                                 if(pageAction.getPageInstance() != null &&
                                    SecurityLogic.hasPermissions(
                                            portofinoConfiguration, pageAction.getPageInstance(),
                                            subject, AccessLevel.EDIT)) {%>
+                        
+                        
                         <li class="divider"></li>
                         <li>
                             <a href="javascript:portofino.enablePageActionDragAndDrop($(this), '${actionBean.context.actionPath}');">
@@ -110,24 +109,15 @@
                             </a>
                         </li>
                         <li>
-                            <%
-                                UrlBuilder urlBuilder = new UrlBuilder(request.getLocale(), PageAdminAction.class, true);
-                                urlBuilder.addParameter("originalPath", pageAction.getContext().getActionPath());
-                                urlBuilder.setEvent("pageChildren");
-                            %>
-                            <a href="<%= request.getContextPath() + urlBuilder %>">
+                            <stripes:link beanclass="com.manydesigns.portofino.actions.admin.page.PageAdminAction" event="pageChildren">
+                                <stripes:param name="originalPath" value="${actionBean.context.actionPath}"/>
                                 <em class="glyphicon glyphicon-folder-open"></em> Page children
-                            </a>
-                        </li>
+                            </stripes:link>                        </li>
                         <li>
-                            <%
-                                urlBuilder = new UrlBuilder(request.getLocale(), PageAdminAction.class, true);
-                                urlBuilder.addParameter("originalPath", pageAction.getContext().getActionPath());
-                                urlBuilder.setEvent("newPage");
-                            %>
-                            <a href="<%= request.getContextPath() + urlBuilder %>">
+                            <stripes:link beanclass="com.manydesigns.portofino.actions.admin.page.PageAdminAction" event="newPage">
+                                <stripes:param name="originalPath" value="${actionBean.context.actionPath}"/>
                                 <em class="glyphicon glyphicon-plus"></em> Add new page
-                            </a>
+                            </stripes:link>
                         </li>
                         <%
                             String jsArgs = "('" +
@@ -154,33 +144,38 @@
                             if(SecurityLogic.hasPermissions(
                                     portofinoConfiguration, pageAction.getPageInstance(),
                                     subject, AccessLevel.DEVELOP)) {
-                                urlBuilder = new UrlBuilder(Locale.getDefault(), PageAdminAction.class, true);
+                                UrlBuilder urlBuilder = new UrlBuilder(Locale.getDefault(), PageAdminAction.class, true);
                                 urlBuilder.addParameter("originalPath", pageAction.getContext().getActionPath());
                                 urlBuilder.setEvent("pagePermissions");
                         %>
                         <li>
-                            <a href="<%= request.getContextPath() + urlBuilder %>">
+                            <stripes:link beanclass="com.manydesigns.portofino.actions.admin.page.PageAdminAction" event="pagePermissions">
+                                <stripes:param name="originalPath" value="${actionBean.context.actionPath}"/>
                                 <em class="glyphicon glyphicon-user"></em> Page permissions
-                            </a>
+                            </stripes:link>
                         </li>
                         <% }}} %>
                     </ul>
                 </li>
+                <li>
+                    <stripes:link href="<%= loginPage %>">
+                        <stripes:param name="logout"/>
+                        <stripes:param name="returnUrl" value="${actionBean.context.actionPath}"/>
+                        <stripes:param name="cancelReturnUrl" value="${actionBean.context.actionPath}"/>
+                        <span class="glyphicon glyphicon-log-out"></span> <fmt:message key="log.out" />
+                    </stripes:link>
+                </li>
                 </shiro:user>
                 <shiro:guest>
-                <%
-                    UrlBuilder loginUrlBuilder =
-                            new UrlBuilder(request.getLocale(), loginPage, false);
-                    loginUrlBuilder.addParameter("returnUrl", actionPath);
-                    loginUrlBuilder.addParameter("cancelReturnUrl", actionPath);
-                    String loginUrl = Util.getAbsoluteUrl(loginUrlBuilder.toString());
-                    %>
                     <li>
-                        <a href="<%= loginUrl %>">
-                            <fmt:message key="log.in" />
-                        </a>
+                        <stripes:link href="<%= loginPage %>">
+                            <stripes:param name="returnUrl" value="${actionPath}"/>
+                            <stripes:param name="cancelReturnUrl" value="${actionPath}"/>
+                            <span class="glyphicon glyphicon-log-in"></span> <fmt:message key="log.in" />
+                        </stripes:link>
                     </li>
                 </shiro:guest>
+                <jsp:include page="/theme/navigation-mobile.jsp" />
             </ul>
         </nav>
     </div>

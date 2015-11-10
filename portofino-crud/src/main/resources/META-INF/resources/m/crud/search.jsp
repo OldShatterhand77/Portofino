@@ -20,20 +20,18 @@
             <input type="hidden" name="returnUrl" value="<c:out value="${actionBean.returnUrl}"/>"/>
             <c:if test="${not empty actionBean.searchForm}">
                 <c:if test="${actionBean.searchVisible}">
-                    <a href="${pageContext.request.contextPath}${actionBean.context.actionPath}"
-                       class="search_form_toggle_link" data-search-visible="true">
-                        <span><fmt:message key="hide.search<<" /></span>
-                        <span style="display: none;"><fmt:message key="search>>" /></span>
+                    <a href="${pageContext.request.contextPath}${actionBean.context.actionPath}" class="search_form_toggle_link" data-search-visible="true">
+                        <span><div style="display: inline;" class="glyphicon glyphicon-menu-up" aria-hidden="true"></div> <fmt:message key="hide.search" /></span>
+                        <span style="display: none;"><div style="display: inline;" class="glyphicon glyphicon-menu-down" aria-hidden="true"></div> <fmt:message key="show.search" /></span>
                     </a>
                 </c:if>
                 <c:if test="${!actionBean.searchVisible}">
-                    <a href="${pageContext.request.contextPath}${actionBean.context.actionPath}?search="
-                       class="search_form_toggle_link" data-search-visible="false">
-                        <span style="display: none;"><fmt:message key="hide.search<<" /></span>
-                        <span><fmt:message key="search>>" /></span>
+                    <a href="${pageContext.request.contextPath}${actionBean.context.actionPath}?search=" class="search_form_toggle_link" data-search-visible="false">
+                        <span style="display: none;"><div style="display: inline;" class="glyphicon glyphicon-menu-up" aria-hidden="true"></div> <fmt:message key="hide.search" /></span>
+                        <span><div style="display: inline;" class="glyphicon glyphicon-menu-down" aria-hidden="true"></div> <fmt:message key="show.search" /></span>
                     </a>
                 </c:if>
-                <div class="search_form" <c:if test="${!actionBean.searchVisible}">style="display: none;"</c:if>>
+                <div class="well search_form" <c:if test="${!actionBean.searchVisible}">style="display: none;"</c:if>>
                     <mde:write name="actionBean" property="searchForm"/>
                     <div class="searchFormButtons">
                         <portofino:buttons list="crud-search-form" />

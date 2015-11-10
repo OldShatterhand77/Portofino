@@ -92,6 +92,8 @@ public class SettingsAction extends AbstractActionBean {
 
         Settings settings = new Settings();
         settings.appName = configuration.getString(PortofinoProperties.APP_NAME);
+        settings.appLogo = configuration.getString(PortofinoProperties.APP_LOGO);
+        settings.appVersion = configuration.getString(PortofinoProperties.APP_VERSION);
         settings.landingPage = configuration.getString(PortofinoProperties.LANDING_PAGE);
         settings.loginPage = configuration.getString(PortofinoProperties.LOGIN_PAGE);
         settings.preloadGroovyPages = configuration.getBoolean(PortofinoProperties.GROOVY_PRELOAD_PAGES, false);
@@ -105,7 +107,7 @@ public class SettingsAction extends AbstractActionBean {
         form.readFromObject(settings);
     }
 
-    @Button(list = "settings", key = "update", order = 1, type = Button.TYPE_PRIMARY)
+    @Button(list = "settings", key = "update", order = 1, type = Button.TYPE_PRIMARY )
     public Resolution update() {
         setupFormAndBean();
         form.readFromRequest(context.getRequest());
@@ -115,6 +117,8 @@ public class SettingsAction extends AbstractActionBean {
                 Settings settings = new Settings();
                 form.writeToObject(settings);
                 configuration.setProperty(PortofinoProperties.APP_NAME, settings.appName);
+                configuration.setProperty(PortofinoProperties.APP_LOGO, settings.appLogo);
+                configuration.setProperty(PortofinoProperties.APP_VERSION, settings.appVersion);
                 configuration.setProperty(PortofinoProperties.LANDING_PAGE, settings.landingPage);
                 configuration.setProperty(PortofinoProperties.LOGIN_PAGE, settings.loginPage);
                 if(!settings.preloadGroovyPages ||
@@ -139,7 +143,7 @@ public class SettingsAction extends AbstractActionBean {
         }
     }
 
-    @Button(list = "settings", key = "return.to.pages", order = 2)
+    @Button(list = "settings", key = "return.to.pages", order = 2  , icon = Button.ICON_HOME)
     public Resolution returnToPages() {
         return new RedirectResolution("/");
     }
@@ -160,8 +164,15 @@ public class SettingsAction extends AbstractActionBean {
 
         @Required
         @Label("Application name")
-        @CssClass(BootstrapSizes.FILL_ROW)
         public String appName;
+
+        @Label("Application logo")
+        @CssClass(BootstrapSizes.FILL_ROW)
+        public String appLogo;
+
+        @Label("Application version")
+        public String appVersion;
+
         @Required
         public String landingPage;
         @Required

@@ -1,4 +1,3 @@
-import com.manydesigns.elements.ElementsThreadLocals
 import com.manydesigns.elements.Mode
 import com.manydesigns.elements.annotations.FileBlob
 import com.manydesigns.elements.annotations.LabelI18N
@@ -23,16 +22,12 @@ import com.manydesigns.portofino.security.RequiresPermissions
 import java.awt.RenderingHints
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
-import javax.imageio.stream.FileImageOutputStream
-import net.sourceforge.stripes.action.DefaultHandler
-import net.sourceforge.stripes.action.RedirectResolution
-import net.sourceforge.stripes.action.Resolution
-import net.sourceforge.stripes.action.StreamingResolution
+import javax.imageio.stream.MemoryCacheImageOutputStream
 import org.apache.commons.lang.StringUtils
 import org.apache.shiro.SecurityUtils
 import org.apache.shiro.authz.annotation.RequiresAuthentication
-import com.manydesigns.elements.blobs.BlobManager
-import com.manydesigns.elements.blobs.BlobManager
+import net.sourceforge.stripes.action.*
+import org.apache.commons.io.IOUtils
 
 @RequiresPermissions(level = AccessLevel.VIEW)
 public class Profile extends CustomAction {
@@ -76,7 +71,7 @@ public class Profile extends CustomAction {
                 build();
         loadUser();
         form.readFromObject(user);
-        return forwardTo("/jsp/profile/view.jsp");
+        return new ForwardResolution("/jsp/profile/view.jsp");
     }
 
     protected Map loadUser() {
@@ -93,6 +88,7 @@ public class Profile extends CustomAction {
         if(StringUtils.isEmpty(avatar)) {
             return new RedirectResolution("/images/user-placeholder-40x40.png");
         } else {
+            loadUser()
             Blob blob = new Blob(user.avatar);
             blobManager.loadMetadata(blob);
             InputStream inputStream = blobManager.openStream(blob);
@@ -100,7 +96,7 @@ public class Profile extends CustomAction {
         }
     }
 
-    @Button(list = "view", order = 1D, type = Button.TYPE_SUCCESS, key = "change.your.password")
+    @Button(list = "view", order = 1D, type = Button.TYPE_PRIMARY, key = "change.your.password", icon=Button.ICON_GEAR)
     public Resolution changePassword() {
         return new RedirectResolution("/login").
                 addParameter("changePassword").
@@ -109,10 +105,10 @@ public class Profile extends CustomAction {
     }
 
     @RequiresAuthentication
-    @Button(list = "view", order = 2D, type = Button.TYPE_SUCCESS, key = "update.your.data")
+    @Button(list = "view", order = 2D, type = Button.TYPE_DEFAULT, key = "update.your.data" , icon=Button.ICON_EDIT)
     public Resolution editData() {
         setupEditForm();
-        return forwardTo("/jsp/profile/update-data.jsp");
+        return new ForwardResolution("/jsp/profile/update-data.jsp");
     }
 
     protected def setupEditForm() {
@@ -127,11 +123,11 @@ public class Profile extends CustomAction {
     }
 
     @RequiresAuthentication
-    @Button(list = "view", order = 3D, type = Button.TYPE_SUCCESS, key = "change.your.photo")
+    @Button(list = "view", order = 3D, type = Button.TYPE_DANGER, key = "change.your.photo" , icon = Button.ICON_PICTURE)
     public Resolution changePhoto() {
         loadUser();
         setupPhotoForm();
-        return forwardTo("/jsp/profile/upload-photo.jsp");
+        return new ForwardResolution("/jsp/profile/upload-photo.jsp");
     }
 
     @RequiresAuthentication
@@ -144,7 +140,7 @@ public class Profile extends CustomAction {
             Blob blob = scaleAndCropAvatar();
             loadUser();
             if(user.avatar != null) {
-                blobManager.delete(user.avatar);
+                blobManager.delete(new Blob(user.avatar));
             }
             user.avatar = blob.code;
             def session = persistence.getSession("tt")
@@ -182,10 +178,8 @@ public class Profile extends CustomAction {
                 writer = ImageIO.getImageWritersByFormatName("png").next();
                 field.getValue().setContentType("image/png");
             }
-            //blobManager.save(blob);
-            //def blobStream = blobManager.openStream(blob);
             def stream = new ByteArrayOutputStream()
-            writer.output = stream;
+            writer.output = new MemoryCacheImageOutputStream(stream);
             writer.write(imageBuff);
             writer.dispose();
             blob.setInputStream(new ByteArrayInputStream(stream.toByteArray()));
@@ -211,7 +205,7 @@ public class Profile extends CustomAction {
     }
 
     @RequiresAuthentication
-    @Button(list = "upload-photo", order = 2D, key = "delete.current.photo")
+    @Button(list = "upload-photo", order = 2D, key = "delete.current.photo" , icon=Button.ICON_TRASH)
     public Resolution deletePhoto() {
         loadUser();
         if(user.avatar != null) {
@@ -236,16 +230,14 @@ public class Profile extends CustomAction {
             session.transaction.commit();
             return new RedirectResolution(context.actionPath);
         } else {
-            return forwardTo("/jsp/profile/update-data.jsp");
+            return new ForwardResolution("/jsp/profile/update-data.jsp");
         }
     }
 
-    @Button(list = "view", order = 4D, type = Button.TYPE_SUCCESS, key = "notifications")
+    @Button(list = "view", order = 4D, type = Button.TYPE_INFO, key = "notifications" , icon=Button.ICON_COMMENT )
     public Resolution notifications() {
         return new RedirectResolution("/profile/notifications");
     }
-
-
 
     @Buttons([
         @Button(list = "upload-photo", order = 3D, key = "cancel"),

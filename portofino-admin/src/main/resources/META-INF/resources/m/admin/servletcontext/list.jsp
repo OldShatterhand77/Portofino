@@ -14,8 +14,15 @@
         <stripes:form beanclass="com.manydesigns.portofino.actions.admin.servletcontext.ServletContextAction"
                       method="post">
             <div class="form-group">
-                <button name="returnToPages" type="submit" class="btn btn-default">Return to pages</button>
+                <button name="returnToPages" type="submit" class="btn btn-default btn-sm">
+                    <em class="glyphicon  glyphicon-home"></em>
+                    <fmt:message key='return.to.pages'/>
+                </button>
             </div>
         </stripes:form>
+
+        <style>
+            .form-control-static { letter-spacing: 0.05em; }
+        </style>
     </stripes:layout-component>
 </stripes:layout-render>

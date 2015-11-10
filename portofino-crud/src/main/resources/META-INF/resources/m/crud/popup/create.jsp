@@ -13,8 +13,8 @@
     <stripes:layout-component name="pageBody">
         <mde:sessionMessages />
         <c:if test="${actionBean.formWithRichTextFields}">
-            <script type="text/javascript" src="<stripes:url value="/theme/ckeditor/ckeditor.js"/>"></script>
-            <script type="text/javascript" src="<stripes:url value="/theme/ckeditor/adapters/jquery.js"/>"></script>
+            <script type="text/javascript" src="<stripes:url value="/webjars/ckeditor/4.5.3/standard/ckeditor.js"/>"></script>
+            <script type="text/javascript" src="<stripes:url value="/webjars/ckeditor/4.5.3/standard/adapters/jquery.js"/>"></script>
             <script type="text/javascript">
                 $(function() {
                     portofino.setupRichTextEditors({
@@ -25,7 +25,7 @@
             </script>
         </c:if>
         <c:if test="${actionBean.requiredFieldsPresent}">
-            <p><fmt:message key="fields.marked.with.a.star.are.required"/>.</p>
+            <p class="subtitle"><fmt:message key="fields.marked.with.a.star.are.required"/>.</p>
         </c:if>
         <stripes:form action="${actionBean.context.actionPath}" method="post"
                       id="${(not empty actionBean.crudConfiguration.name) ? actionBean.crudConfiguration.name : null}"

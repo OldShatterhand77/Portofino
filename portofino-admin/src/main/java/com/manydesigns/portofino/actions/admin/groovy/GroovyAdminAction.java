@@ -22,6 +22,7 @@ package com.manydesigns.portofino.actions.admin.groovy;
 
 import com.manydesigns.elements.ElementsThreadLocals;
 import com.manydesigns.elements.messages.SessionMessages;
+import com.manydesigns.elements.ognl.OgnlUtils;
 import com.manydesigns.portofino.buttons.annotations.Button;
 import com.manydesigns.portofino.di.Inject;
 import com.manydesigns.portofino.modules.BaseModule;
@@ -59,8 +60,7 @@ public class GroovyAdminAction extends AbstractActionBean {
     // Logging
     //--------------------------------------------------------------------------
 
-    public final static Logger logger =
-            LoggerFactory.getLogger(GroovyAdminAction.class);
+    public final static Logger logger = LoggerFactory.getLogger(GroovyAdminAction.class);
 
     //--------------------------------------------------------------------------
     // Action events
@@ -71,7 +71,7 @@ public class GroovyAdminAction extends AbstractActionBean {
         return new ForwardResolution("/m/admin/groovy.jsp");
     }
 
-    @Button(list = "groovy", key = "reset.groovy.script.engine", order = 1, type = Button.TYPE_PRIMARY)
+    @Button(list = "groovy", key = "reset.groovy.script.engine", order = 1, type = Button.TYPE_PRIMARY , icon = Button.ICON_RELOAD)
     public Resolution resetGroovyScriptEngine() {
         logger.info("Resetting Groovy script engine");
         ServletContext servletContext = context.getServletContext();
@@ -81,11 +81,14 @@ public class GroovyAdminAction extends AbstractActionBean {
         servletContext.setAttribute(BaseModule.CLASS_LOADER, classLoader);
         servletContext.setAttribute(BaseModule.GROOVY_SCRIPT_ENGINE, groovyScriptEngine);
         SessionMessages.addInfoMessage(ElementsThreadLocals.getText("script.engine.successfully.reset"));
+
+        logger.info("Clearing OGNL caches potentially holding Groovy objects");
+        OgnlUtils.clearCache();
         logger.info("Groovy script engine reset.");
         return new ForwardResolution("/m/admin/groovy.jsp");
     }
 
-    @Button(list = "groovy", key = "return.to.pages", order = 2)
+    @Button(list = "groovy", key = "return.to.pages", order = 2  , icon = Button.ICON_HOME)
     public Resolution returnToPages() {
         return new RedirectResolution("/");
     }

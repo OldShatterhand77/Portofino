@@ -35,6 +35,7 @@ import javax.xml.bind.annotation.*;
 */
 @XmlRootElement
 @XmlAccessorType(value = XmlAccessType.NONE)
+@XmlType(propOrder = {"title","description", "navigationRoot","id","layout","detailLayout","permissions"})
 public class Page {
     public static final String copyright =
             "Copyright (c) 2005-2015, ManyDesigns srl";
@@ -79,7 +80,11 @@ public class Page {
 
     public void init() {
         assert title != null;
-        assert description != null;
+
+        if( description==null ){
+            description="";
+        }
+        //assert description != null;
 
         if(navigationRoot == null) {
             actualNavigationRoot = NavigationRoot.INHERIT;
@@ -124,8 +129,7 @@ public class Page {
         this.title = title;
     }
 
-    @XmlAttribute(required = true)
-    @Required
+    @XmlAttribute(required = false)
     public String getDescription() {
         return description;
     }

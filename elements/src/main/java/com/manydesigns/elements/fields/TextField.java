@@ -33,7 +33,6 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
-import java.lang.annotation.Annotation;
 
 /*
 * @author Paolo Predonzani     - paolo.predonzani@manydesigns.com
@@ -53,6 +52,7 @@ public class TextField extends AbstractTextField<String> {
     protected String[] red;
     protected String[] amber;
     protected String[] green;
+    protected String noValueText = "-";
 
     //**************************************************************************
     // Costruttori
@@ -84,7 +84,7 @@ public class TextField extends AbstractTextField<String> {
             multiline = richTextAnnotation.value();
             richText = richTextAnnotation.value();
             logger.debug("RichText annotation present with value: {}",
-                    multiline);
+                    richText);
         }
         
         if (accessor.isAnnotationPresent(Status.class)) {
@@ -177,6 +177,9 @@ public class TextField extends AbstractTextField<String> {
             cssClass += " status_amber";
         } else if (ArrayUtils.contains(green, stringValue)) {
             cssClass += " status_green";
+        }
+        if(StringUtils.isBlank(stringValue)) {
+            cssClass += " no-value";
         }
         xb.addAttribute("class", cssClass);
         xb.addAttribute("id", id);
@@ -277,6 +280,14 @@ public class TextField extends AbstractTextField<String> {
 
     public void setTextAreaMinRows(int textAreaMinRows) {
         this.textAreaMinRows = textAreaMinRows;
+    }
+
+    public String getNoValueText() {
+        return noValueText;
+    }
+
+    public void setNoValueText(String noValueText) {
+        this.noValueText = noValueText;
     }
 }
 

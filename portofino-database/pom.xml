@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.manydesigns</groupId>
         <artifactId>portofino</artifactId>
-        <version>4.2-SNAPSHOT</version>
+        <version>4.2</version>
     </parent>
     <artifactId>portofino-database</artifactId>
     <packaging>jar</packaging>
@@ -73,12 +73,7 @@
         <dependency>
             <groupId>com.google.oauth-client</groupId>
             <artifactId>google-oauth-client</artifactId>
-            <version>1.13.1-beta</version>
-        </dependency>
-        <dependency>
-          <groupId>com.google.http-client</groupId>
-          <artifactId>google-http-client-jackson2</artifactId>
-          <version>1.13.1-beta</version>
+            <version>1.20.0</version>
         </dependency>
     </dependencies>
     <build>

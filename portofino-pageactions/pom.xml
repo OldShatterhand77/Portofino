@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.manydesigns</groupId>
         <artifactId>portofino</artifactId>
-        <version>4.2-SNAPSHOT</version>
+        <version>4.2</version>
     </parent>
     <artifactId>portofino-pageactions</artifactId>
     <packaging>jar</packaging>
@@ -72,12 +72,40 @@
         <dependency>
             <groupId>com.google.oauth-client</groupId>
             <artifactId>google-oauth-client</artifactId>
-            <version>1.13.1-beta</version>
+            <version>1.20.0</version>
         </dependency>
         <dependency>
-          <groupId>com.google.http-client</groupId>
-          <artifactId>google-http-client-jackson2</artifactId>
-          <version>1.13.1-beta</version>
+            <groupId>com.google.api-client</groupId>
+            <artifactId>google-api-client-jackson2</artifactId>
+            <version>1.20.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava-jdk5</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!-- Ace Editor (for Groovy) -->
+        <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>ace</artifactId>
+            <version>1.2.0</version>
+        </dependency>
+        <!-- javascript-detect-element-resize for Ace Editor -->
+        <dependency>
+            <groupId>org.webjars.bower</groupId>
+            <artifactId>javascript-detect-element-resize</artifactId>
+            <version>0.5.3</version>
+        </dependency>
+        <!-- CKEditor -->
+        <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>ckeditor</artifactId>
+            <version>4.5.3</version>
         </dependency>
     </dependencies>
     <build>

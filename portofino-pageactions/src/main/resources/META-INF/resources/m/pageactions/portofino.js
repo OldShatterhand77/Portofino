@@ -140,7 +140,7 @@ function setupRichTextEditors() {
                 }
             }, conf);
         } else if(console && console.error) {
-            console.error("CKEditor not loaded! Make sure that /theme/ckeditor/ckeditor.js and /theme/ckeditor/adapters/jquery.js are included in your page.");
+            console.error("CKEditor not loaded! Make sure that ckeditor.js and adapters/jquery.js are included in your page.");
         }
     });
 }
@@ -212,7 +212,11 @@ function configureBulkEditTextField(id, checkboxName) {
 
 function configureBulkEditDateField(id, checkboxName) {
     configureBulkEditTextField(id, checkboxName);
-    configureBulkEditField(id, checkboxName);
+    $("#" + id).on("dp.change", function() {
+        if($(this).val()) {
+            $("input[name=" + checkboxName + "]").prop("checked", true);
+        }
+    });
 }
 
 function configureBulkEditField(id, checkboxName) {
@@ -250,7 +254,7 @@ portofino.setupRichTextEditors = function(config) {
         baseConfig.height =
                 windowHeight -
                 $("textarea.mde-form-rich-text").offset().top -
-                $("footer").height() -
+                $("footer").position().top -
                 350; //350 ~= toolbar 3 righe + footer + margine tolleranza
     }
 
@@ -289,10 +293,12 @@ portofino.enablePageActionDragAndDrop = function(button, originalPath) {
     var container = $(".content");
     container.prepend('\
         <form action="' + portofino.contextPath + '/actions/admin/page" method="post">\
-            Edit page layout: \
+            <div class="well" style="padding:36px;"><h1 style="font-size:36px" >Edit page layout:</h1>\
+            <p> Just drag and drop dotted section.</p>                                    </p><p> \
             <input type="hidden" name="originalPath" value="' + originalPath + '" />\
-            <button name="updateLayout" type="submit" class="btn btn-primary">Save</button>\
-            <button name="cancel" type="submit" class="btn btn-default">Cancel</button>\
+            <div class="btn-group"><button name="updateLayout" type="submit" class="btn btn-primary">Save</button>\
+            <button name="cancel" type="submit" class="btn btn-default">Cancel</button></div>\
+            \
         </form>');
     container.find("button[name=updateLayout]").click(function() {
         var theButton = $(this);

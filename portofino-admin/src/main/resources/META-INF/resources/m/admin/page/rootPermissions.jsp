@@ -28,10 +28,13 @@
                     PageInstance currentPageInstance = actionBean.getPageInstance();
                     Page currentPage = currentPageInstance.getPage();
                 %>
+                <thead>
                 <tr>
                     <th><fmt:message key="group" /></th>
                     <th><fmt:message key="access.level" /></th>
                 </tr>
+                </thead>
+                <tbody>
                 <c:forEach var="group" items="${actionBean.groups}">
                     <tr>
                         <%
@@ -42,7 +45,7 @@
                             <c:out value="${group}"/>
                         </td>
                         <td>
-                            <select name="accessLevels[${group}]">
+                            <select class="form-control input-sm" name="accessLevels[${group}]">
                                 <option value="<%= AccessLevel.NONE.name() %>"
                                         <%
                                             if (AccessLevel.NONE.equals(localAccessLevel)) {
@@ -87,6 +90,7 @@
                         </td>
                     </tr>
                 </c:forEach>
+                </tbody>
             </table>
             <div class="form-group">
                 <portofino:buttons list="root-permissions" />

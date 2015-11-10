@@ -43,11 +43,9 @@
                 PkHelper pkHelper = new PkHelper(ca);
                 for(Map.Entry<Object, Boolean> entry : actionBean.getBooleanRelation().entrySet()) {
                     String id = RandomUtil.createRandomId();
-                    buffer.openElement("label");
-                    buffer.addAttribute("class", "checkbox");
-                    buffer.addAttribute("for", id);
+                    buffer.openElement("div");
+                    buffer.addAttribute("class", "form-control checkbox");
                     Object obj = entry.getKey();
-                    buffer.write(ShortNameUtils.getName(ca, obj));
                     buffer.openElement("input");
                     buffer.addAttribute("id", id);
                     buffer.addAttribute("type", "checkbox");
@@ -63,7 +61,14 @@
                         buffer.addAttribute("checked", "t");
                     }
                     buffer.closeElement("input");
+
+                    buffer.openElement("label");
+                    buffer.addAttribute("for", id);
+
+                    buffer.write(ShortNameUtils.getName(ca, obj));
                     buffer.closeElement("label");
+
+                    buffer.closeElement("div");
                     if(actionBean.getConfiguration().getActualViewType() == ViewType.CHECKBOXES_VERTICAL) {
                         buffer.writeNoHtmlEscape("<br />");
                     } else {
@@ -71,7 +76,7 @@
                     }
                 }
             %>
-            <br /><br />
+            <br/>
             <portofino:buttons list="m2m-checkboxes-edit" />
         </stripes:form>
     </stripes:layout-component>

@@ -10,9 +10,9 @@
 <footer>
     <div class="container">
         <div class="pull-right">
-            <fmt:message key="page.response.time"/>: <c:out value="${stopWatch.time}"/> ms.
+            <fmt:message key="page.response.time"/>: <strong><c:out value="${stopWatch.time}"/></strong> ms.
         </div>
-        Powered by <a href="http://www.manydesigns.com/">Portofino</a>
+        Powered by <a href="http://portofino.manydesigns.com/">Portofino</a>
         <c:out value="<%= ModuleRegistry.getPortofinoVersion() %>"/>
     </div>
 </footer>

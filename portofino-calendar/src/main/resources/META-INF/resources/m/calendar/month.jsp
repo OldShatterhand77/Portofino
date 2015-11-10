@@ -89,10 +89,19 @@
         padding: 0 0 3px 10px; border: none; text-align: left;
     }
     .event {
+        border-radius: 3px;
+        font-size: smaller;
+        letter-spacing: 0.03em;
+        text-align: center;
         padding: 0 0 0 4px; white-space: nowrap; overflow: hidden;
     }
+    .event .more{
+        color: #a9a9a9;
+        text-shadow: 0px 0px 1px rgba(255,255,255,0.5);
+    }
     .event a {
-        color: #222222;
+        color: white;
+        text-shadow: 0px 0px 1px rgba(0,0,0,0.5);
     }
     .outOfMonth {
         color: #BBBBBB;
@@ -105,6 +114,7 @@
 <div>
     <div class="pull-right" >
         <button type="submit" name="agendaView" class="btn btn-default btn-sm">
+            <span class="glyphicon glyphicon-book"></span>
             <fmt:message key="agenda" />
         </button>
     </div>
@@ -114,6 +124,7 @@
             boolean todayDisabled = monthInterval.contains(new DateTime());
         %>
         <button type="submit" name="today" class="btn btn-default btn-sm"<%= todayDisabled ? " disabled='true'" : "" %>>
+            <span class="glyphicon glyphicon-calendar"></span>
             <fmt:message key="current.month" />
         </button>
         <button type="submit" name="prevMonth" class="btn btn-default btn-sm">
@@ -315,6 +326,7 @@
         }
         if(dialogId != null) {
             xhtmlBuffer.openElement("a");
+            xhtmlBuffer.addAttribute("class", "more");
             xhtmlBuffer.addAttribute("href", "#");
             xhtmlBuffer.addAttribute("data-target", "#" + dialogId);
             xhtmlBuffer.addAttribute("data-toggle", "modal");

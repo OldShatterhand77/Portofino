@@ -206,7 +206,7 @@ public abstract class LoginAction extends AbstractActionBean {
             logger.info("User {} login", ShiroUtils.getUserId(subject));
             Session session = subject.getSession(true);
             JSONStringer stringer = new JSONStringer();
-            stringer.object().key("portofinoSessionId").value((String) session.getId()).endObject();
+            stringer.object().key("portofinoSessionId").value(session.getId()).endObject();
             return stringer.toString();
         } catch (AuthenticationException e) {
             logger.warn("Login failed for '" + username + "': " + e.getMessage(), e);
@@ -626,19 +626,25 @@ public abstract class LoginAction extends AbstractActionBean {
     }
 
     protected Resolution redirectToReturnUrl(String returnUrl) {
+        boolean prependContext = true;
         if (StringUtils.isEmpty(returnUrl)) {
             returnUrl = "/";
         } else try {
             URL url = new URL(returnUrl);
-            if(!context.getRequest().getServerName().equals(url.getHost())) {
-                logger.warn("Forbidding suspicious return URL: " + returnUrl);
+            if (!isValidReturnUrl(url)) {
+                logger.warn("Forbidding suspicious return URL: " + url);
                 return new RedirectResolution("/");
             }
+            prependContext = false;
         } catch (MalformedURLException e) {
             //Ok, if it is not a full URL there's no risk of XSS attacks with returnUrl=http://www.evil.com/hack
         }
         logger.debug("Redirecting to: {}", returnUrl);
-        return new RedirectResolution(returnUrl);
+        return new RedirectResolution(returnUrl, prependContext);
+    }
+
+    protected boolean isValidReturnUrl(URL url) {
+        return context.getRequest().getServerName().equals(url.getHost());
     }
 
     //**************************************************************************

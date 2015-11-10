@@ -39,6 +39,7 @@ import java.util.List;
 * @author Alessio Stalla       - alessio.stalla@manydesigns.com
 */
 @XmlAccessorType(XmlAccessType.NONE)
+@XmlType(propOrder = {"catalog", "schemaName","immediateTables"})
 public class Schema implements ModelObject {
     public static final String copyright =
             "Copyright (c) 2005-2015, ManyDesigns srl";
@@ -78,8 +79,9 @@ public class Schema implements ModelObject {
     //**************************************************************************
 
     public void afterUnmarshal(Unmarshaller u, Object parent) {
-        database = (Database)parent;
+        database = (Database) parent;
         tables.addAll(immediateTables);
+        immediateTables.clear();
     }
 
     public String getQualifiedName() {
@@ -156,7 +158,7 @@ public class Schema implements ModelObject {
 
     public List<Column> getAllColumns() {
         List<Column> result = new ArrayList<Column>();
-        for (Table table : immediateTables) {
+        for (Table table : tables) {
             for (Column column : table.getColumns()) {
                 result.add(column);
             }

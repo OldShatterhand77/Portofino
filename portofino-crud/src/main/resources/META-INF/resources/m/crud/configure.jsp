@@ -26,7 +26,7 @@
                     <mde:write name="actionBean" property="propertiesTableForm"/>
                 </c:if>
                 <c:if test="${empty actionBean.propertiesTableForm}">
-                    <fmt:message key= "you.must.write.a.query.first" />
+                    <p><fmt:message key= "you.must.write.a.query.first" /></p>
                 </c:if>
             </fieldset>
             <c:if test="${not empty actionBean.propertiesTableForm}">
@@ -49,8 +49,8 @@
                         });
 
                         var firstCell = $("#crudPropertiesFieldset tr:first th:first");
-                        firstCell.html("<input type='checkbox' />")
-                        var allCheckbox = firstCell.find("input")
+                        firstCell.html("<div class='checkbox'><input type='checkbox' id='crudPropertiesSelectAll' /><label for='crudPropertiesSelectAll'></label></div>");
+                        var allCheckbox = firstCell.find("input");
                         allCheckbox.click(function() {
                             inputs.each(function() {
                                 var checkbox = $(this);
@@ -75,7 +75,7 @@
                         <mde:write name="actionBean" property="selectionProvidersForm"/>
                     </c:when>
                     <c:otherwise>
-                        <fmt:message key="none.available" />
+                        <p><fmt:message key="none.available" /></p>
                     </c:otherwise>
                 </c:choose>
             </fieldset>
@@ -83,7 +83,7 @@
             <jsp:include page="/m/pageactions/script-configuration.jsp" />
             <input type="hidden" name="returnUrl" value="<c:out value="${actionBean.returnUrl}"/>"/>
             <div class="form-group">
-                <div class="col-sm-12">
+                <div class="col-sm-12 ">
                     <portofino:buttons list="configuration" />
                 </div>
             </div>

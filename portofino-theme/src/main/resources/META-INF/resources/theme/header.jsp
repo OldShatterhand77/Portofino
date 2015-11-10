@@ -8,17 +8,26 @@
 %><%@ taglib prefix="mde" uri="/manydesigns-elements"
 %><%@ taglib tagdir="/WEB-INF/tags" prefix="portofino"
 %><stripes:url var="profileUrl" value="/actions/profile"/>
-<jsp:useBean id="portofinoConfiguration" scope="application"
-             type="org.apache.commons.configuration.Configuration"/>
+<jsp:useBean id="portofinoConfiguration" scope="application" type="org.apache.commons.configuration.Configuration"/>
 <jsp:useBean id="actionBean" scope="request" type="com.manydesigns.portofino.stripes.AbstractActionBean"/>
 <fmt:setLocale value="${pageContext.request.locale}"/>
 <header class="navbar navbar-inverse navbar-static-top">
+
     <div class="container">
-        <h4 class="pull-left">
-            <stripes:link href="/">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+
+            <stripes:link href="/" class="navbar-brand">
                 <c:out value="<%= portofinoConfiguration.getString(PortofinoProperties.APP_NAME) %>"/>
             </stripes:link>
-        </h4>
-        This is the default header. You should customize it including a /theme/header.jsp page in your application.
+            This is the default, empty header. You should customize it including a /theme/header.jsp page in your application. The Maven archetype creates one for you and the distribution you download from SourceForge includes the same one as well.
+        </div>
+
     </div>
+
 </header>

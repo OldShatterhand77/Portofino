@@ -4,10 +4,7 @@ import com.manydesigns.elements.ElementsThreadLocals;
 import com.manydesigns.elements.stripes.ElementsActionBeanContext;
 import com.manydesigns.portofino.RequestAttributes;
 import com.manydesigns.portofino.di.Injections;
-import com.manydesigns.portofino.dispatcher.DispatchElement;
-import com.manydesigns.portofino.dispatcher.DispatcherLogic;
-import com.manydesigns.portofino.dispatcher.PageAction;
-import com.manydesigns.portofino.dispatcher.PageInstance;
+import com.manydesigns.portofino.dispatcher.*;
 import com.manydesigns.portofino.modules.BaseModule;
 import com.manydesigns.portofino.modules.PageactionsModule;
 import com.manydesigns.portofino.pages.Page;
@@ -24,6 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import java.io.File;
@@ -34,7 +32,7 @@ import java.io.File;
  * @author Emanuele Poggi       - emanuele.poggi@manydesigns.com
  * @author Alessio Stalla       - alessio.stalla@manydesigns.com
  */
-@Path(APIRoot.PATH_PREFIX)
+@Path("/")
 public class APIRoot {
 
     public static final String copyright =
@@ -62,7 +60,7 @@ public class APIRoot {
         OgnlContext ognlContext = ElementsThreadLocals.getOgnlContext();
         ognlContext.put("securityUtils", new SecurityUtilsBean());
 
-        String actionPath = "/" + uriInfo.getPath().substring(PATH_PREFIX.length());
+        String actionPath = "/" + uriInfo.getPath();
         if (request.getDispatcherType() == DispatcherType.REQUEST) {
             logger.debug("Starting page response timer");
             StopWatch stopWatch = new StopWatch();
@@ -82,9 +80,18 @@ public class APIRoot {
         Page rootPage = DispatcherLogic.getPage(pagesDirectory);
         PageInstance pageInstance = new PageInstance(null, pagesDirectory, rootPage, null);
 
-        PageAction subpage = DispatcherLogic.getSubpage(configuration, pageInstance, pathFragment);
-        subpage.setContext(context);
-        Injections.inject(subpage, servletContext, request);
-        return subpage;
+        try {
+            PageAction subpage = DispatcherLogic.getSubpage(configuration, pageInstance, pathFragment);
+            if(subpage == null) {
+                logger.error("Page not found: {}", pathFragment);
+                throw new WebApplicationException(404);
+            }
+            subpage.setContext(context);
+            Injections.inject(subpage, servletContext, request);
+            return subpage;
+        } catch (PageNotActiveException e) {
+            logger.error("Page not active", e);
+            throw new WebApplicationException(404);
+        }
     }
 }

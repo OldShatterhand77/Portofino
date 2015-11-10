@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java"
          pageEncoding="UTF-8"
+
 %><%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"
 %><%@ taglib prefix="stripes" uri="http://stripes.sourceforge.net/stripes-dynattr.tld"
 %><%@taglib prefix="mde" uri="/manydesigns-elements"
@@ -13,11 +14,15 @@
     <stripes:layout-component name="pageBody">
         <stripes:form beanclass="com.manydesigns.portofino.actions.admin.groovy.GroovyAdminAction"
                       method="post">
-            <p>
-                <fmt:message key="layouts.admin.groovy.text"/>
-            </p>
-            <div class="form-group">
-                <portofino:buttons list="groovy" />
+            <div class="jumbotron">
+                <p>
+                    <fmt:message key="layouts.admin.groovy.text"/>
+                </p>
+                <p>
+                <div class="form-group btn-group-lg">
+                    <portofino:buttons list="groovy" />
+                </div>
+                </p>
             </div>
         </stripes:form>
     </stripes:layout-component>

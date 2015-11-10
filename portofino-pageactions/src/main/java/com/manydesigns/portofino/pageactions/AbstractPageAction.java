@@ -28,7 +28,11 @@ import com.manydesigns.elements.options.DefaultSelectionProvider;
 import com.manydesigns.elements.options.SelectionProvider;
 import com.manydesigns.elements.servlet.ServletUtils;
 import com.manydesigns.elements.util.ElementsFileUtils;
+import com.manydesigns.elements.util.MimeTypes;
 import com.manydesigns.elements.util.Util;
+import com.manydesigns.portofino.buttons.ButtonInfo;
+import com.manydesigns.portofino.buttons.ButtonsLogic;
+import com.manydesigns.portofino.buttons.GuardType;
 import com.manydesigns.portofino.buttons.annotations.Button;
 import com.manydesigns.portofino.di.Inject;
 import com.manydesigns.portofino.di.Injections;
@@ -63,12 +67,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
+import javax.ws.rs.*;
 import java.io.*;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.lang.reflect.Method;
+import java.util.*;
 import java.util.regex.Pattern;
 
 /**
@@ -224,15 +226,48 @@ public abstract class AbstractPageAction extends AbstractActionBean implements P
      * @return @see #consumePathFragment(String)
      */
     @Path("{pathFragment}")
-    public DispatchElement getSubResource(@PathParam("pathFragment") String pathFragment) {
+    public Object getSubResource(@PathParam("pathFragment") String pathFragment) {
         DispatchElement resource = consumePathFragment(pathFragment);
         if(resource != this) {
             if(context == null) {
                 setContext(pageInstance.getParent().getActionBean().getContext());
             }
-            preparePage();
+            Resolution resolution = preparePage();
+            if(resolution != null) {
+                return new TerminalResource(resolution);
+            }
         }
         return resource;
+    }
+
+    public static class TerminalResource {
+
+        private final Object result;
+
+        public TerminalResource(Object result) {
+            this.result = result;
+        }
+
+        @GET
+        public Object get() {
+            return result;
+        }
+
+        @POST
+        public Object post() {
+            return result;
+        }
+
+        @PUT
+        public Object put() {
+            return result;
+        }
+
+        @DELETE
+        public Object delete() {
+            return result;
+        }
+
     }
 
     public MultiMap initEmbeddedPageActions() {
@@ -505,7 +540,7 @@ public abstract class AbstractPageAction extends AbstractActionBean implements P
                 SessionMessages.addErrorMessage(ElementsThreadLocals.getText("script.class.is.not.valid"));
             }
             if(this instanceof GroovyObject) {
-                //Attempt to remove old instance of custom action bean
+                logger.debug("Attempting to remove old instance of page action from Stripes caches");
                 //not guaranteed to work
                 try {
                     ModelActionResolver actionResolver =
@@ -549,10 +584,10 @@ public abstract class AbstractPageAction extends AbstractActionBean implements P
     //--------------------------------------------------------------------------
 
     /**
-     * Returns a ForwardResolution to the given page, and sets up internal parameters that need to be propagated in case
-     * of embedding.
+     * Returns a ForwardResolution to the given page.
      * @param page the path to the page, from the root of the webapp.
      * @return a Resolution that forwards to the given page.
+     * @deprecated use simply new ForwardResolution(page) instead.
      */
     @Deprecated
     public Resolution forwardTo(String page) {
@@ -587,5 +622,44 @@ public abstract class AbstractPageAction extends AbstractActionBean implements P
 
     public void setPageTemplate(String pageTemplate) {
         this.pageTemplate = pageTemplate;
+    }
+
+    @Path(":buttons")
+    @GET
+    @Produces(MimeTypes.APPLICATION_JSON_UTF8)
+    public List getButtons() {
+        HttpServletRequest request = context.getRequest();
+        String list = request.getParameter("list");
+        List<ButtonInfo> buttons = ButtonsLogic.getButtonsForClass(getClass(), list);
+        List result = new ArrayList();
+        Subject subject = SecurityUtils.getSubject();
+        for(ButtonInfo button : buttons) {
+            logger.trace("ButtonInfo: {}", button);
+            Method handler = button.getMethod();
+            boolean isAdmin = SecurityLogic.isAdministrator(request);
+            if(!isAdmin &&
+               ((pageInstance != null && !SecurityLogic.hasPermissions(
+                       portofinoConfiguration, button.getMethod(), button.getFallbackClass(), pageInstance, subject)) ||
+                !SecurityLogic.satisfiesRequiresAdministrator(request, this, handler))) {
+                continue;
+            }
+            boolean visible = ButtonsLogic.doGuardsPass(this, handler, GuardType.VISIBLE);
+            if(!visible) {
+                continue;
+            }
+            boolean enabled = ButtonsLogic.doGuardsPass(this, handler, GuardType.ENABLED);
+            Map<String, Object> buttonData = new HashMap<String, Object>();
+            buttonData.put("list", button.getButton().list());
+            buttonData.put("group", button.getButton().group());
+            buttonData.put("icon", button.getButton().icon());
+            buttonData.put("iconBefore", button.getButton().iconBefore());
+            buttonData.put("text", ElementsThreadLocals.getText(button.getButton().key()));
+            buttonData.put("order", button.getButton().order());
+            buttonData.put("type", button.getButton().type());
+            buttonData.put("method", button.getMethod().getName());
+            buttonData.put("enabled", enabled);
+            result.add(buttonData);
+        }
+        return result;
     }
 }

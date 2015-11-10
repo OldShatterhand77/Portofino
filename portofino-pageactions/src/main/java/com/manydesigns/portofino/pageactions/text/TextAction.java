@@ -81,6 +81,7 @@ public class TextAction extends AbstractPageAction {
     public static final String PERMISSION_EDIT = "permission.text.edit";
 
     public String title;
+    public String description;
     public String content;
     public String[] selection;
     public String[] downloadable;
@@ -136,7 +137,7 @@ public class TextAction extends AbstractPageAction {
         if (StringUtils.isEmpty(content)) {
             content = "<em>Empty content. To add content, configure this page.</em>";
         }
-        return forwardTo("/m/pageactions/text/read.jsp");
+        return new ForwardResolution("/m/pageactions/text/read.jsp");
     }
 
     /**
@@ -359,6 +360,7 @@ public class TextAction extends AbstractPageAction {
     @RequiresAuthentication
     public Resolution configure() {
         title = pageInstance.getPage().getTitle();
+        description = pageInstance.getPage().getDescription();
         try {
             loadContent();
             logger.debug("Edit content: {}", textFile.getAbsolutePath());
@@ -394,7 +396,7 @@ public class TextAction extends AbstractPageAction {
         }
     }
 
-    @Button(list = "manage-attachments-upload", key = "text.attachment.upload", order = 1)
+    @Button(list = "manage-attachments-upload", key = "text.attachment.upload", order = 1 , icon=Button.ICON_UPLOAD )
     @RequiresPermissions(level = AccessLevel.VIEW, permissions = { PERMISSION_EDIT })
     @RequiresAuthentication
     public Resolution uploadAttachment() {
@@ -542,8 +544,13 @@ public class TextAction extends AbstractPageAction {
             SessionMessages.addErrorMessage(ElementsThreadLocals.getText("title.cannot.be.empty"));
             return new ForwardResolution("/m/pageactions/text/edit-content.jsp");
         }
+
+        description = context.getRequest().getParameter("description");
+        description = StringUtils.trimToNull(description);
+
         Page page = pageInstance.getPage();
         page.setTitle(title);
+        page.setDescription(description);
         try {
             DispatcherLogic.savePage(pageInstance.getDirectory(), page);
             saveContent();
@@ -555,7 +562,7 @@ public class TextAction extends AbstractPageAction {
         return cancel();
     }
 
-    @Button(list = "manage-attachments-delete", key = "delete", order = 1)
+    @Button(list = "manage-attachments-delete", key = "delete", order = 1 , icon = Button.ICON_TRASH )
     @RequiresPermissions(level = AccessLevel.VIEW, permissions = { PERMISSION_EDIT })
     @RequiresAuthentication
     public Resolution deleteAttachments() {
@@ -617,6 +624,14 @@ public class TextAction extends AbstractPageAction {
     }
 
     public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getDescription() {
+        return title;
+    }
+
+    public void setDescription(String title) {
         this.title = title;
     }
 

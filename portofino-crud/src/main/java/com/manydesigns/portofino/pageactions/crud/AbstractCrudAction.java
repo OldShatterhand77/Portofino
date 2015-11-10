@@ -48,12 +48,15 @@ import com.manydesigns.elements.util.ReflectionUtil;
 import com.manydesigns.elements.util.Util;
 import com.manydesigns.elements.xml.XhtmlBuffer;
 import com.manydesigns.portofino.PortofinoProperties;
+import com.manydesigns.portofino.buttons.ButtonInfo;
+import com.manydesigns.portofino.buttons.ButtonsLogic;
 import com.manydesigns.portofino.buttons.GuardType;
 import com.manydesigns.portofino.buttons.annotations.Button;
 import com.manydesigns.portofino.buttons.annotations.Buttons;
 import com.manydesigns.portofino.buttons.annotations.Guard;
 import com.manydesigns.portofino.di.Inject;
 import com.manydesigns.portofino.dispatcher.PageInstance;
+import com.manydesigns.portofino.logic.SecurityLogic;
 import com.manydesigns.portofino.modules.BaseModule;
 import com.manydesigns.portofino.pageactions.AbstractPageAction;
 import com.manydesigns.portofino.pageactions.PageActionLogic;
@@ -73,6 +76,7 @@ import ognl.OgnlContext;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.shiro.SecurityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONStringer;
@@ -88,6 +92,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -282,7 +287,7 @@ public abstract class AbstractCrudAction<T> extends AbstractPageAction {
     }
 
     /**
-     * @see #loadObjectByPrimaryKey(java.io.Serializable)
+     * {@link #loadObjectByPrimaryKey(java.io.Serializable))
      * @param identifier the object identifier in String form
      */
     protected void loadObject(String... identifier) {
@@ -295,14 +300,18 @@ public abstract class AbstractCrudAction<T> extends AbstractPageAction {
     //**************************************************************************
 
     @Buttons({
-        @Button(list = "crud-search-form", key = "search", order = 1, type = Button.TYPE_PRIMARY),
-        @Button(list = "crud-search-form-default-button", key = "search")
+        @Button(list = "crud-search-form", key = "search", order = 1, type = Button.TYPE_PRIMARY, icon = Button.ICON_SEARCH),
+        @Button(list = "crud-search-form-default-button", key = "search" )
     })
     public Resolution search() {
         //Not really used. Search is AJAX these days.
         return doSearch();
     }
 
+    /**
+     * Executes a search and forwards to the appropriate view.
+     * @return the result of {@link #getSearchView()}
+     */
     protected Resolution doSearch() {
         if(!isConfigured()) {
             logger.debug("Crud not correctly configured");
@@ -417,7 +426,7 @@ public abstract class AbstractCrudAction<T> extends AbstractPageAction {
      */
     public abstract long getTotalSearchRecords();
 
-    @Button(list = "crud-search-form", key = "reset.search", order = 2)
+    @Button(list = "crud-search-form", key = "reset.search", order = 2, type = Button.TYPE_DEFAULT, icon = Button.ICON_RELOAD )
     public Resolution resetSearch() {
         //Not really used. Search is AJAX these days.
         return new RedirectResolution(context.getActionPath());
@@ -494,7 +503,7 @@ public abstract class AbstractCrudAction<T> extends AbstractPageAction {
 
     /**
      * Returns the JSoup whitelist used to clean user-provided HTML in rich-text fields.
-     * @return the default implementation returns the "basic" whitelist ({@see Whitelist#basic()}).
+     * @return the default implementation returns the "basic" whitelist ({@link Whitelist#basic()}).
      */
     protected Whitelist getWhitelist() {
         return Whitelist.basic();
@@ -505,7 +514,7 @@ public abstract class AbstractCrudAction<T> extends AbstractPageAction {
     //**************************************************************************
 
     @Button(list = "crud-search", key = "create.new", order = 1, type = Button.TYPE_SUCCESS,
-            icon = Button.ICON_PLUS + Button.ICON_WHITE, group = "crud")
+            icon = Button.ICON_PLUS + Button.ICON_WHITE)
     @RequiresPermissions(permissions = PERMISSION_CREATE)
     public Resolution create() {
         setupForm(Mode.CREATE);
@@ -575,7 +584,7 @@ public abstract class AbstractCrudAction<T> extends AbstractPageAction {
     //**************************************************************************
 
     @Buttons({
-        @Button(list = "crud-read", key = "edit", order = 1, icon = Button.ICON_EDIT + Button.ICON_WHITE,
+        @Button(list = "crud-read", key = "edit", order = 1 , icon = Button.ICON_EDIT + Button.ICON_WHITE,
                 group = "crud", type = Button.TYPE_SUCCESS),
         @Button(list = "crud-read-default-button", key = "search")
     })
@@ -663,7 +672,10 @@ public abstract class AbstractCrudAction<T> extends AbstractPageAction {
                 "bulkDelete".equals(context.getEventName());
     }
 
-    @Button(list = "crud-search", key = "edit", order = 2, icon = Button.ICON_EDIT, group = "crud")
+    @Buttons({
+        @Button(list = "crud-search", key = "edit", order = 2, icon = Button.ICON_EDIT),
+        @Button(list = "crud-bulk", key = "edit", order = 2, icon = Button.ICON_EDIT)
+    })
     @Guard(test = "isBulkOperationsEnabled()", type = GuardType.VISIBLE)
     @RequiresPermissions(permissions = PERMISSION_EDIT)
     public Resolution bulkEdit() {
@@ -729,7 +741,7 @@ public abstract class AbstractCrudAction<T> extends AbstractPageAction {
     // Delete
     //**************************************************************************
 
-    @Button(list = "crud-read", key = "delete", order = 2, icon = Button.ICON_TRASH, group = "crud")
+    @Button(list = "crud-read", key = "delete", order = 2, icon = Button.ICON_TRASH)
     @RequiresPermissions(permissions = PERMISSION_DELETE)
     public Resolution delete() {
         if(deleteValidate(object)) {
@@ -749,7 +761,10 @@ public abstract class AbstractCrudAction<T> extends AbstractPageAction {
         return getSuccessfulDeleteView();
     }
 
-    @Button(list = "crud-search", key = "delete", order = 3, icon = Button.ICON_TRASH, group = "crud")
+    @Buttons({
+        @Button(list = "crud-search", key = "delete", order = 3, icon = Button.ICON_TRASH),
+        @Button(list = "crud-bulk", key = "delete", order = 3, icon = Button.ICON_TRASH)
+    })
     @Guard(test = "isBulkOperationsEnabled()", type = GuardType.VISIBLE)
     @RequiresPermissions(permissions = PERMISSION_DELETE)
     public Resolution bulkDelete() {
@@ -943,7 +958,7 @@ public abstract class AbstractCrudAction<T> extends AbstractPageAction {
      * Returns the Resolution used to show the Read page.
      */
     protected Resolution getReadView() {
-        return forwardTo("/m/crud/read.jsp");
+        return new ForwardResolution("/m/crud/read.jsp");
     }
 
     /**
@@ -957,7 +972,7 @@ public abstract class AbstractCrudAction<T> extends AbstractPageAction {
      * Returns the Resolution used to show the Search page.
      */
     protected Resolution getSearchView() {
-        return forwardTo("/m/crud/search.jsp");
+        return new ForwardResolution("/m/crud/search.jsp");
     }
 
     /**
@@ -1079,12 +1094,18 @@ public abstract class AbstractCrudAction<T> extends AbstractPageAction {
         }
     }
 
+    /**
+     * Computes the search URL from the current URL. In other words, it removes any /pk trailing path fragment from the
+     * URL used to access the page.
+     * @return the search URL.
+     */
     protected String calculateBaseSearchUrl() {
-        assert pk != null; //Ha senso solo in modalita' read/detail
         String baseUrl = Util.getAbsoluteUrl(context.getActionPath());
-        for(int i = 0; i < pk.length; i++) {
-            int lastSlashIndex = baseUrl.lastIndexOf('/');
-            baseUrl = baseUrl.substring(0, lastSlashIndex);
+        if(pk != null) {
+            for(int i = 0; i < pk.length; i++) {
+                int lastSlashIndex = baseUrl.lastIndexOf('/');
+                baseUrl = baseUrl.substring(0, lastSlashIndex);
+            }
         }
         return baseUrl;
     }
@@ -1102,6 +1123,10 @@ public abstract class AbstractCrudAction<T> extends AbstractPageAction {
                 .toString();
     }
 
+    /**
+     * Creates, configures and populates the form used to gather search parameters. If this page is embedded, the form's
+     * values are not read from the request to avoid having the embedding page influence this one.
+     */
     protected void setupSearchForm() {
         SearchFormBuilder searchFormBuilder = createSearchFormBuilder();
         searchForm = buildSearchForm(configureSearchFormBuilder(searchFormBuilder));
@@ -1112,6 +1137,15 @@ public abstract class AbstractCrudAction<T> extends AbstractPageAction {
         }
     }
 
+    /**
+     * Populates the search form from request parameters.
+     * <ul>
+     *     <li>If <code>searchString</code> is blank, then the form is read from the request
+     *     (by {@link SearchForm#readFromRequest(javax.servlet.http.HttpServletRequest)}) and <code>searchString</code>
+     *     is generated accordingly.</li>
+     *     <li>Else, <code>searchString</code> is interpreted as a query string and the form is populated from it.</li>
+     * </ul>
+     */
     protected void readSearchFormFromRequest() {
         if (StringUtils.isBlank(searchString)) {
             searchForm.readFromRequest(context.getRequest());
@@ -1289,13 +1323,46 @@ public abstract class AbstractCrudAction<T> extends AbstractPageAction {
 
     protected TableForm buildTableForm(TableFormBuilder tableFormBuilder) {
         TableForm tableForm = tableFormBuilder.build();
-
         tableForm.setKeyGenerator(pkHelper.createPkGenerator());
-        tableForm.setSelectable(true);
+        tableForm.setSelectable(tableForm.getRows().length > 0 && isTableFormSelectable());
         tableForm.setCondensed(true);
 
         return tableForm;
     }
+
+    public Boolean isTableFormSelectable() {
+        List<ButtonInfo> buttons = ButtonsLogic.getButtonsForClass(getClass(), "crud-bulk");
+        Boolean selectable = false ;
+        if(buttons == null) {
+            logger.trace("buttons == null");
+        } else {
+            logger.trace("There are " + buttons.size() + " buttons");
+            for(ButtonInfo button : buttons) {
+                logger.trace("ButtonInfo: {}", button);
+                Method handler = button.getMethod();
+                boolean isAdmin = SecurityLogic.isAdministrator(context.getRequest());
+                if(!isAdmin &&
+                        ((pageInstance != null && !SecurityLogic.hasPermissions(
+                                portofinoConfiguration, button.getMethod(), button.getFallbackClass(), pageInstance, SecurityUtils.getSubject())) ||
+                                !SecurityLogic.satisfiesRequiresAdministrator(context.getRequest(), this, handler))) {
+                    continue;
+                }
+
+                if( ButtonsLogic.doGuardsPass(this, handler, GuardType.VISIBLE)
+                        && ButtonsLogic.doGuardsPass(this, handler, GuardType.ENABLED)
+                        ) {
+                    logger.trace("Visible " + button.getButton().key());
+                    logger.trace("Guards passed");
+                    selectable = true ;
+                    break;
+                } else {
+                    logger.trace("Guards do not pass");
+                }
+            }
+        }
+        return selectable;
+    }
+
 
     protected TableFormBuilder createTableFormBuilder() {
         return new TableFormBuilder(classAccessor);
@@ -1323,6 +1390,11 @@ public abstract class AbstractCrudAction<T> extends AbstractPageAction {
         return tableFormBuilder;
     }
 
+    /**
+     * Creates and configures the {@link Form} used to display, edit and save a single object. As a side effect, assigns
+     * that form to the field {@link #form}.
+     * @param mode the {@link Mode} of the form.
+     */
     protected void setupForm(Mode mode) {
         FormBuilder formBuilder = createFormBuilder();
         configureFormBuilder(formBuilder, mode);
@@ -1366,7 +1438,7 @@ public abstract class AbstractCrudAction<T> extends AbstractPageAction {
     }
 
     protected void disableBlobFields() {
-        //Disable blob fields: we don't support them.
+        //Disable blob fields: we don't support them when bulk editing.
         for(FieldSet fieldSet : form) {
             for(FormElement element : fieldSet) {
                 if(element instanceof FileBlobField) {
@@ -1623,12 +1695,12 @@ public abstract class AbstractCrudAction<T> extends AbstractPageAction {
 
     protected void setupConfigurationForm(FormBuilder formBuilder) {
         DefaultSelectionProvider nColumnsSelectionProvider = new DefaultSelectionProvider("columns");
-        nColumnsSelectionProvider.setDisplayMode(DisplayMode.RADIO);
-        nColumnsSelectionProvider.appendRow(1, "1", true);
-        nColumnsSelectionProvider.appendRow(2, "2", true);
-        nColumnsSelectionProvider.appendRow(3, "3", true);
-        nColumnsSelectionProvider.appendRow(4, "4", true);
-        nColumnsSelectionProvider.appendRow(6, "6", true);
+        nColumnsSelectionProvider.setDisplayMode(DisplayMode.DROPDOWN);
+        nColumnsSelectionProvider.appendRow(1, "1 column", true);
+        nColumnsSelectionProvider.appendRow(2, "2 columns", true);
+        nColumnsSelectionProvider.appendRow(3, "3 columns", true);
+        nColumnsSelectionProvider.appendRow(4, "4 columns", true);
+        nColumnsSelectionProvider.appendRow(6, "6 columns", true);
         formBuilder.configSelectionProvider(nColumnsSelectionProvider, "columns");
     }
 
@@ -2026,21 +2098,35 @@ public abstract class AbstractCrudAction<T> extends AbstractPageAction {
     // REST
     //--------------------------------------------------------------------------
 
+    /**
+     * Handles search and detail via REST. See <a href="http://portofino.manydesigns.com/en/docs/reference/page-types/crud/rest">the CRUD action REST API documentation.</a>
+     * @since 4.2
+     * @return search results (/) or single object (/pk) as JSON (streamed using a Stripes Resolution).
+     */
     @GET
     @Produces(MimeTypes.APPLICATION_JSON_UTF8)
     public Resolution getAsJson() {
         if(object == null) {
-            Form form = new FormBuilder(AbstractCrudAction.class).
-                    configFields("searchString", "firstResult", "maxResults", "sortProperty", "sortDirection").
-                    build();
-            form.readFromRequest(context.getRequest());
-            form.writeToObject(this);
+            readSearchParamsFromRequest();
             return jsonSearchData();
         } else {
             return jsonReadData();
         }
     }
 
+    protected void readSearchParamsFromRequest() {
+        Form form = new FormBuilder(AbstractCrudAction.class).
+                configFields("searchString", "firstResult", "maxResults", "sortProperty", "sortDirection").
+                build();
+        form.readFromRequest(context.getRequest());
+        form.writeToObject(this);
+    }
+
+    /**
+     * Handles object creation via REST. See <a href="http://portofino.manydesigns.com/en/docs/reference/page-types/crud/rest">the CRUD action REST API documentation.</a>
+     * @since 4.2
+     * @return the created object as JSON (in a JAX-RS Response).
+     */
     @POST
     @RequiresPermissions(permissions = PERMISSION_CREATE)
     @Produces(MimeTypes.APPLICATION_JSON_UTF8)
@@ -2080,6 +2166,11 @@ public abstract class AbstractCrudAction<T> extends AbstractPageAction {
         }
     }
 
+    /**
+     * Handles object update via REST. See <a href="http://portofino.manydesigns.com/en/docs/reference/page-types/crud/rest">the CRUD action REST API documentation.</a>
+     * @since 4.2
+     * @return the updated object as JSON (in a JAX-RS Response).
+     */
     @PUT
     @RequiresPermissions(permissions = PERMISSION_EDIT)
     @Produces(MimeTypes.APPLICATION_JSON_UTF8)
@@ -2114,6 +2205,10 @@ public abstract class AbstractCrudAction<T> extends AbstractPageAction {
         }
     }
 
+    /**
+     * Handles object deletion via REST. See <a href="http://portofino.manydesigns.com/en/docs/reference/page-types/crud/rest">the CRUD action REST API documentation.</a>
+     * @since 4.2
+     */
     @DELETE
     @RequiresPermissions(permissions = PERMISSION_DELETE)
     public void httpDelete() throws Exception {
@@ -2134,6 +2229,12 @@ public abstract class AbstractCrudAction<T> extends AbstractPageAction {
         }
     }
 
+    /**
+     * Returns a description of this CRUD's ClassAccessor.
+     * See <a href="http://portofino.manydesigns.com/en/docs/reference/page-types/crud/rest">the CRUD action REST API documentation.</a>
+     * @since 4.2
+     * @return the class accessor as JSON.
+     */
     @Path(":classAccessor")
     @GET
     @Produces(MimeTypes.APPLICATION_JSON_UTF8)

@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.manydesigns</groupId>
         <artifactId>portofino</artifactId>
-        <version>4.2-SNAPSHOT</version>
+        <version>4.2</version>
     </parent>
     <artifactId>portofino-theme</artifactId>
     <packaging>jar</packaging>
@@ -74,7 +74,22 @@
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>Eonasdan-bootstrap-datetimepicker</artifactId>
-            <version>4.7.14</version>
+            <version>4.15.35</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars.bower</groupId>
+            <artifactId>bootstrap-fileinput</artifactId>
+            <version>4.2.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.webjars.bower</groupId>
+                    <artifactId>jquery</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.webjars.bower</groupId>
+                    <artifactId>bootstrap</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 </project>
